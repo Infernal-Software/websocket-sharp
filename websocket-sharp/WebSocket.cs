@@ -73,6 +73,7 @@ namespace WebSocketSharp
     #region Private Fields
 
     private AuthenticationChallenge        _authChallenge;
+    private string                         _userAgent;
     private string                         _base64Key;
     private bool                           _client;
     private Action                         _closeContext;
@@ -252,7 +253,7 @@ namespace WebSocketSharp
     ///   <paramref name="protocols"/> contains a value twice.
     ///   </para>
     /// </exception>
-    public WebSocket (string url, params string[] protocols)
+    public WebSocket (string url, string userAgent = "websocket-sharp/1.0", params string[] protocols)
     {
       if (url == null)
         throw new ArgumentNullException ("url");
@@ -277,8 +278,8 @@ namespace WebSocketSharp
       _message = messagec;
       _secure = _uri.Scheme == "wss";
       _waitTime = TimeSpan.FromSeconds (5);
-
-      init ();
+      _userAgent = userAgent;
+      init();
     }
 
     #endregion
@@ -1347,9 +1348,11 @@ namespace WebSocketSharp
 
       if (authRes != null)
         headers["Authorization"] = authRes.ToString ();
-
+      
       if (_cookies.Count > 0)
         ret.SetCookies (_cookies);
+
+      ret.UserAgent = _userAgent;
 
       return ret;
     }
@@ -1370,7 +1373,7 @@ namespace WebSocketSharp
 
       if (_cookies.Count > 0)
         ret.SetCookies (_cookies);
-
+      
       return ret;
     }
 
@@ -2076,6 +2079,8 @@ namespace WebSocketSharp
     private void sendProxyConnectRequest ()
     {
       var req = HttpRequest.CreateConnectRequest (_uri);
+      req.UserAgent = _userAgent;
+
       var res = sendHttpRequest (req, 90000);
       if (res.IsProxyAuthenticationRequired) {
         var chal = res.Headers["Proxy-Authenticate"];
@@ -2098,6 +2103,7 @@ namespace WebSocketSharp
 
           var authRes = new AuthenticationResponse (authChal, _proxyCredentials, 0);
           req.Headers["Proxy-Authorization"] = authRes.ToString ();
+          req.UserAgent = _userAgent;
           res = sendHttpRequest (req, 15000);
         }
 
@@ -3827,6 +3833,35 @@ namespace WebSocketSharp
         lock (_cookies.SyncRoot)
           _cookies.SetOrRemove (cookie);
       }
+    }
+
+    /// <summary>
+    /// Sets the User-Agent for the websocket connection
+    /// </summary>
+    /// <param name="userAgent"></param>
+    public void SetUserAgent(string userAgent)
+    {
+        string msg = null;
+
+        if (!_client)
+            throw new InvalidOperationException("This instance is not a client.");
+
+        if (!canSet(out msg))
+        {
+            _logger.Warn(msg);
+            return;
+        }
+
+        lock (_forState)
+        {
+            if (!canSet(out msg))
+            {
+                _logger.Warn(msg);
+                return;
+            }
+
+            
+        }
     }
 
     /// <summary>

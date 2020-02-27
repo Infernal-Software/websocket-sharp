@@ -514,6 +514,10 @@ namespace WebSocketSharp.Net
       get {
         return _headers["User-Agent"];
       }
+      set
+      {
+        _headers["User-Agent"] = value;
+      }
     }
 
     /// <summary>

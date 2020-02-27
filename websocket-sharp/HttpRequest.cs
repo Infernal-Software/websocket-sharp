@@ -64,15 +64,21 @@ namespace WebSocketSharp
 
     #region Internal Constructors
 
-    internal HttpRequest (string method, string uri)
+    internal HttpRequest (string method, string uri, string userAgent = "websocket-sharp/1.0")
       : this (method, uri, HttpVersion.Version11, new NameValueCollection ())
     {
-      Headers["User-Agent"] = "websocket-sharp/1.0";
+      Headers["User-Agent"] = userAgent;
     }
 
     #endregion
 
     #region Public Properties
+
+    public string UserAgent
+    {
+        get { return Headers["User-Agent"];  }
+        set { Headers["User-Agent"] = value; }
+    }
 
     public AuthenticationResponse AuthenticationResponse {
       get {
